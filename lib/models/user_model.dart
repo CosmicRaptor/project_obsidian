@@ -1,12 +1,12 @@
 class User {
-  final String id;
-  final String name;
-  final String aboutme;
+  final String? id;
+  final String? name;
+  final String? aboutme;
 
   User({
-    required this.id,
-    required this.name,
-    required this.aboutme,
+    this.id,
+    this.name,
+    this.aboutme,
   });
 
   //toJson and fromJson
@@ -21,4 +21,16 @@ class User {
     name: json['name'],
     aboutme: json['aboutme'],
   );
+
+  User copyWith({
+    String? id,
+    String? name,
+    String? aboutme,
+  }) {
+    return User(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      aboutme: aboutme ?? this.aboutme,
+    );
+  }
 }
