@@ -19,6 +19,7 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     User user = ref.watch(userProvider);
+    //ref.watch(multicastBroadcastProvider);
     return YaruTheme(
       builder: (context, yaru, child) {
         return MaterialApp(

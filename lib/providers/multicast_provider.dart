@@ -1,43 +1,76 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:multicast_dns/multicast_dns.dart';
+import 'package:bonsoir/bonsoir.dart';
 
-// Creating a stream provider that provides a list of discovered clients
-final multicastProvider = StreamProvider.autoDispose<List<String>>((ref) async* {
-  final client = MDnsClient();
-  final name = '_chatapp._tcp.local'; // Ensure the correct service name is used
-  List<String> clients = [];
+// StateNotifier to handle discovery state and persist it across rebuilds
+class MulticastNotifier extends StateNotifier<List<String>> {
+  MulticastNotifier(this.ref) : super([]) {
+    _startDiscovery();
+  }
 
-  // Start the mDNS client
-  await client.start();
-  print("mDNS client started");
+  final Ref ref;
+  late BonsoirDiscovery discovery;
+  Set<String> discoveredServices = {};
 
-  // Ensure that the client is properly stopped when the provider is disposed
-  ref.onDispose(() {
-    client.stop();
-    print("mDNS client stopped");
-  });
+  Future<void> _startDiscovery() async {
+    String type = '_chat._tcp'; // The service type for the chat application.
+    discovery = BonsoirDiscovery(type: type);
+    await discovery.ready;
 
-  // Listen for service pointers matching the service name
-  await for (final PtrResourceRecord ptr in client.lookup<PtrResourceRecord>(ResourceRecordQuery.serverPointer(name))) {
-    print('Discovered service pointer: ${ptr.domainName}');
+    // Start the broadcast before starting the discovery
+    await ref.read(multicastBroadcastProvider.future);
 
-    // For each PTR record, lookup the service details (SRV records)
-    await for (final SrvResourceRecord srv in client.lookup<SrvResourceRecord>(ResourceRecordQuery.service(ptr.domainName))) {
-      print('Found service at ${srv.target}:${srv.port}');
+    // Start the discovery process:
+    await discovery.start();
 
-      // Retrieve the IP address for the service
-      await for (final IPAddressResourceRecord ip in client.lookup<IPAddressResourceRecord>(ResourceRecordQuery.addressIPv4(srv.target))) {
-        print('Found IP address: ${ip.address}');
+    // Listen to the discovery events:
+    discovery.eventStream!.listen((event) {
+      if (event.type == BonsoirDiscoveryEventType.discoveryServiceFound) {
+        String? serviceName = event.service?.name;
 
-        // Add the client's IP address to the list if it's not already in the list
-        if (!clients.contains(ip.address.toString())) {
-          clients.add(ip.address.toString());
-          print("Discovered clients: $clients");
+        // Check if service was already discovered
+        if (serviceName != null && !discoveredServices.contains(serviceName)) {
+          print('Service found : ${event.service?.toJson()}');
+          discoveredServices.add(serviceName); // Add to discovered set
+          state = [...state, serviceName]; // Update state with new clients
+        }
+      } else if (event.type == BonsoirDiscoveryEventType.discoveryServiceLost) {
+        String? serviceName = event.service?.name;
 
-          // Yield the updated list of clients
-          yield [...clients];
+        if (serviceName != null && discoveredServices.contains(serviceName)) {
+          print('Service lost : ${event.service?.toJson()}');
+          discoveredServices.remove(serviceName); // Remove from discovered set
+          state = state.where((client) => client != serviceName).toList(); // Update state
         }
       }
-    }
+    });
   }
+
+  Future<void> stopDiscovery() async {
+    await discovery.stop();
+  }
+
+  @override
+  void dispose() {
+    stopDiscovery();
+    super.dispose();
+  }
+}
+
+// Create a provider for MulticastNotifier
+final multicastProvider = StateNotifierProvider<MulticastNotifier, List<String>>((ref) {
+  return MulticastNotifier(ref);
+});
+
+// Provider for broadcasting services
+final multicastBroadcastProvider = FutureProvider.autoDispose<void>((ref) async {
+  BonsoirBroadcast broadcast = ref.read(bonsoirBroadcast);
+  await broadcast.ready;
+
+  // Start the broadcast **after** listening to broadcast events:
+  await broadcast.start();
+});
+
+// Provide the BonsoirService instance so it can be stopped/started:
+final bonsoirBroadcast = Provider<BonsoirBroadcast>((ref) {
+  return BonsoirBroadcast(service: BonsoirService(name: 'Flutter Chat', type: '_chat._tcp', port: 45000));
 });

@@ -18,43 +18,40 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     User? user = ref.read(userProvider);
     print(user);
-    return ref.watch(multicastProvider).when(
-      data: (clients) {
-        print(clients);
-        return Scaffold(
-          body: YaruMasterDetailPage(
-            length: clients.length,
-            appBar: YaruWindowTitleBar(
-              title: Text(user?.name ?? ''),
-            ),
-            tileBuilder: (context, index, selected, availableWidth) {
-              return ListTile(
-                title: Text(clients[index]),
-                selected: selected,
-              );
-            },
-            pageBuilder: (context, index) {
-              if (index == 0) {
-                return const YaruDetailPage(
-                  appBar: YaruWindowTitleBar(
-                    title: Text('Page 1'),
-                  ),
-                  body: MessagesPage(),
-                );
-              } else {
-                return const YaruDetailPage(
-                  appBar: YaruWindowTitleBar(
-                    title: Text('Page 2'),
-                  ),
-                  body: MessagesPage(),
-                );
-              }
-            },
-          ),
-        );
-      },
-      loading: () => Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(child: Text('Error: $error')),
+
+    // Watch the multicastProvider
+    final clients = ref.watch(multicastProvider);
+
+    return Scaffold(
+      body: YaruMasterDetailPage(
+        length: clients.length,
+        appBar: YaruWindowTitleBar(
+          title: Text(user?.name ?? ''),
+        ),
+        tileBuilder: (context, index, selected, availableWidth) {
+          return ListTile(
+            title: Text(clients[index]),
+            selected: selected,
+          );
+        },
+        pageBuilder: (context, index) {
+          if (index == 0) {
+            return const YaruDetailPage(
+              appBar: YaruWindowTitleBar(
+                title: Text('Page 1'),
+              ),
+              body: MessagesPage(),
+            );
+          } else {
+            return const YaruDetailPage(
+              appBar: YaruWindowTitleBar(
+                title: Text('Page 2'),
+              ),
+              body: MessagesPage(),
+            );
+          }
+        },
+      ),
     );
   }
 }
