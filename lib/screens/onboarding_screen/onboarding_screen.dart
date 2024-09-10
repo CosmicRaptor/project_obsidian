@@ -35,7 +35,7 @@ class OnboardingScreen extends ConsumerWidget {
                     },
                     onFieldSubmitted: (value) {
                       ref.read(setUsernameProvider(value));
-                      ref.read(getUserNameProvider).when(
+                      ref.read(getUserProvider).when(
                         data: (user) => print(user.toJson()),
                         loading: () => print('Loading...'),
                         error: (error, stack) => print('Error: $error'),
@@ -45,7 +45,7 @@ class OnboardingScreen extends ConsumerWidget {
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
-                      ref.read(getUserNameProvider).when(
+                      ref.read(getUserProvider).when(
                         data: (user) {
                           if (user.name == null) {
                             print('null');

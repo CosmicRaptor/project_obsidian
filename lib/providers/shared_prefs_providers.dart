@@ -1,6 +1,7 @@
 import 'package:chat_app/models/user_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 //providers to store and retrieve username entered by user
 
@@ -18,8 +19,17 @@ final setUsernameProvider = FutureProvider.family<String, String>((ref, username
 });
 
 //provider to get the username stored
-final getUserNameProvider = FutureProvider<User>((ref) async {
+final getUserProvider = FutureProvider<User>((ref) async {
   SharedPreferences prefs = await ref.read(sharedPreferencesProvider.future);
   String? username = prefs.getString('username');
-  return User(name: username);
+  String? uuid = prefs.getString('uuid');
+  return User(name: username, id: uuid);
+});
+
+final setuuidProvider = FutureProvider<String>((ref) async {
+  SharedPreferences prefs = await ref.read(sharedPreferencesProvider.future);
+  String uuid = Uuid().v4();
+  prefs.setString('uuid', uuid);
+  print(prefs.getString('uuid'));
+  return uuid;
 });

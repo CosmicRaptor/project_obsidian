@@ -18,7 +18,8 @@ class MyApp extends ConsumerWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    AsyncValue<User> userAsyncValue = ref.watch(getUserNameProvider);
+
+    AsyncValue<User> userAsyncValue = ref.watch(getUserProvider);
     return YaruTheme(
         builder: (context, yaru, child) {
           return MaterialApp(
@@ -27,7 +28,12 @@ class MyApp extends ConsumerWidget {
             darkTheme: yaru.darkTheme,
             title: 'Chat App',
             home: userAsyncValue.when(
-              data: (user) => user.name == null ? const OnboardingScreen() : const HomeScreen(),
+              data: (user) {
+                if(user.id == null) {
+                  ref.read(setuuidProvider);
+                }
+                return user.name == null ? const OnboardingScreen() : const HomeScreen();
+              },
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stack) => Center(child: Text('Error: $error')),
             ),

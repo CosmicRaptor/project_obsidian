@@ -17,7 +17,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     // Watch the getUserNameProvider
-    AsyncValue<User> userAsyncValue = ref.watch(getUserNameProvider);
+    AsyncValue<User> userAsyncValue = ref.watch(getUserProvider);
     userAsyncValue.when(
       data: (user) => print(user),
       loading: () => print('Loading...'),

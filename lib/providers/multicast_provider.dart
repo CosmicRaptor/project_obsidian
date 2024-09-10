@@ -1,5 +1,8 @@
+import 'package:chat_app/providers/shared_prefs_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bonsoir/bonsoir.dart';
+
+import '../models/user_model.dart';
 
 // StateNotifier to handle discovery state and persist it across rebuilds
 class MulticastNotifier extends StateNotifier<List<String>> {
@@ -72,5 +75,11 @@ final multicastBroadcastProvider = FutureProvider.autoDispose<void>((ref) async 
 
 // Provide the BonsoirService instance so it can be stopped/started:
 final bonsoirBroadcast = Provider<BonsoirBroadcast>((ref) {
-  return BonsoirBroadcast(service: BonsoirService(name: 'Flutter Chat', type: '_chat._tcp', port: 45000));
+  AsyncValue<User> userAsyncValue = ref.watch(getUserProvider);
+  userAsyncValue.when(
+    data: (user) => print(user),
+    loading: () => print('Loading...'),
+    error: (error, stack) => print('Error: $error'),
+  );
+  return BonsoirBroadcast(service: BonsoirService(name: userAsyncValue.maybeWhen(data: (user) => user.id ?? 'No UUID', orElse: ()=>'Something went wrong'), type: '_chat._tcp', port: 45000));
 });

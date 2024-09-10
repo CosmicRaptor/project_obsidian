@@ -7,19 +7,59 @@ class MessagesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    double height = MediaQuery.of(context).size.height;
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            MessageCard(msg: Message(isSender: false, text: 'Hello Ubuntu', isLiked: false, sender: 'Ubuntu', time: DateTime.now())),
-          ],
+        SizedBox(
+          height: height * 0.8,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    MessageCard(msg: Message(isSender: false, text: 'Hello Ubuntu', isLiked: false, sender: 'Ubuntu', time: DateTime.now())),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    MessageCard(msg: Message(isSender: true, text: 'Hello Yaru', isLiked: false, sender: 'Yaru', time: DateTime.now())),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            MessageCard(msg: Message(isSender: true, text: 'Hello Yaru', isLiked: false, sender: 'Yaru', time: DateTime.now())),
-          ],
+        //chat input box
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        decoration: InputDecoration(
+                          hintText: 'Type a message',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    IconButton(
+                      icon: const Icon(Icons.send),
+                      onPressed: () {},
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
