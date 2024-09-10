@@ -1,5 +1,4 @@
-import 'package:chat_app/models/user_model.dart';
-import 'package:chat_app/providers/user_provider.dart';
+import 'package:chat_app/providers/shared_prefs_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaru/widgets.dart';
@@ -12,47 +11,59 @@ class OnboardingScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      body: YaruDetailPage(
-        appBar: YaruWindowTitleBar(
-          title: const Text('Onboarding'),
-        ),
-        body: Center(
-          child: SizedBox(
-            width: 300,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('Welcome to the Chat App'),
-                const SizedBox(height: 20),
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Username',
+        body: YaruDetailPage(
+          appBar: YaruWindowTitleBar(
+            title: const Text('Onboarding'),
+          ),
+          body: Center(
+            child: SizedBox(
+              width: 300,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Welcome to the Chat App'),
+                  const SizedBox(height: 20),
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'Username',
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your username';
+                      }
+                      return null;
+                    },
+                    onFieldSubmitted: (value) {
+                      ref.read(setUsernameProvider(value));
+                      ref.read(getUserNameProvider).when(
+                        data: (user) => print(user.toJson()),
+                        loading: () => print('Loading...'),
+                        error: (error, stack) => print('Error: $error'),
+                      );
+                    },
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your username';
-                    }
-                    return null;
-                  },
-                  onFieldSubmitted: (value) {
-                    ref.read(userProvider.notifier).setUser(User(name: value));
-                  },
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    if(ref.read(userProvider).name == null) {
-                      return;
-                    }
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeScreen()));
-                  },
-                  child: const Text('Continue'),
-                ),
-              ],
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      ref.read(getUserNameProvider).when(
+                        data: (user) {
+                          if (user.name == null) {
+                            print('null');
+                            return;
+                          }
+                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeScreen()));
+                        },
+                        loading: () => print('Loading...'),
+                        error: (error, stack) => print('Error: $error'),
+                      );
+                    },
+                    child: const Text('Continue'),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      )
+        )
     );
   }
 }
