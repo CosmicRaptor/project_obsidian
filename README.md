@@ -1,16 +1,16 @@
-# chat_app
+# Project Obsidian
 
-A new Flutter project.
+A WIP TCP socket based chat/file transfer program, developed using the Yaru theme for linux distributions. 
 
-## Getting Started
+## How it works:
+- It's completely peer to peer, clients discover each other using multicast DNS.
+- Connections will be made to the port broadcasted by mDNS.
+- Uses TCP for the sockets to ensure a reliable connection.
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## What's working:
+- [x] discovery of clients
+- [x] advertising your client using mDNS
+- [x] (partially implemented) connect using TCP
+- [ ] encryption
+- [ ] message persistence
+- [ ] file sharing  
