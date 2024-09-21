@@ -18,6 +18,14 @@ class Payload {
       type: ConnectionTypes.values[json['type']],
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'ip': ip,
+      'port': port,
+      'type': type.index,
+    };
+  }
 }
 
 class ConnectionRequest extends Payload{
@@ -39,6 +47,16 @@ class ConnectionRequest extends Payload{
       ip: json['ip'],
       port: json['port'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'uuid': uuid,
+      'ip': ip,
+      'port': port,
+      'type': type.index,
+    };
   }
 }
 
@@ -62,6 +80,16 @@ class ConnectionAccepted extends Payload {
       port: json['port'],
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'uuid': uuid,
+      'ip': ip,
+      'port': port,
+      'type': type.index,
+    };
+  }
 }
 
 class Message extends Payload {
@@ -83,5 +111,15 @@ class Message extends Payload {
       ip: json['ip'],
       port: json['port'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'message': message,
+      'uuid': uuid,
+      'ip': ip,
+      'port': port,
+      'type': type.index,
+    };
   }
 }

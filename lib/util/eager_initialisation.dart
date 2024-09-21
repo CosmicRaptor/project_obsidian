@@ -1,3 +1,4 @@
+import 'package:chat_app/providers/connection_provider.dart';
 import 'package:chat_app/providers/multicast_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,6 +20,7 @@ class EagerInitialization extends ConsumerWidget {
     // By using "watch", the provider will stay alive and not be disposed.
     ref.watch(broadcastModelProvider);
     ref.watch(discoveryModelProvider);
+    ref.watch(tcpListenerProvider.notifier).startListening(4000);
     return child;
   }
 }

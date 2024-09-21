@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:bonsoir/bonsoir.dart';
 import 'package:chat_app/models/app_service.dart';
+import 'package:chat_app/providers/connection_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -113,14 +114,21 @@ class _ServiceWidget extends ConsumerWidget {
       subtitle += '\nHost : ${(service as ResolvedBonsoirService).host}, port : ${service.port}';
     }
 
-    return Card(
-      child: ListTile(
-        leading: const Icon(Icons.wifi),
-        title: Text(service.name),
-        subtitle: Text(subtitle),
-        trailing: trailing,
-        isThreeLine: true,
+    return InkWell(
+      child: Card(
+        child: ListTile(
+          leading: const Icon(Icons.wifi),
+          title: Text(service.name),
+          subtitle: Text(subtitle),
+          trailing: trailing,
+          isThreeLine: true,
+        ),
       ),
+      onTap: () {
+        if(service is ResolvedBonsoirService) {
+          ref.watch(tcpConnectionProvider.notifier).connect((service as ResolvedBonsoirService).host!, service.port);
+        }
+      },
     );
   }
 }

@@ -54,21 +54,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           );
         },
         pageBuilder: (context, index) {
-          if (index == 0) {
-            return const YaruDetailPage(
-              appBar: YaruWindowTitleBar(
-                title: Text('Page 1'),
-              ),
-              body: MessagesPage(),
-            );
-          } else {
-            return const YaruDetailPage(
-              appBar: YaruWindowTitleBar(
-                title: Text('Page 2'),
-              ),
-              body: MessagesPage(),
-            );
-          }
+          return const MessagesPage();
         },
       ),
     );
