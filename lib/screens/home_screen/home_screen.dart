@@ -42,6 +42,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           return ServiceList.fromMap(
               services: clients,
               emptyText: 'No services found',
+              index: index,
               trailingServiceWidgetBuilder: (context, service) {
                 return TextButton(
                   onPressed: () {

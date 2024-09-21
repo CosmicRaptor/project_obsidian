@@ -19,17 +19,22 @@ class ServiceList extends StatelessWidget {
   /// The text to display when the list is empty.
   final String emptyText;
 
+  // The index at which we are
+  final int index;
+
   /// Creates a new service list instance.
   ServiceList({
     Key? key,
     required Iterable<BonsoirService> services,
     required String emptyText,
+    required int index,
     Widget Function(BuildContext, BonsoirService)? trailingServiceWidgetBuilder,
   }) : this.fromMap(
     key: key,
     services: _buildMap(services),
     emptyText: emptyText,
     trailingServiceWidgetBuilder: trailingServiceWidgetBuilder,
+    index: index,
   );
 
   /// Creates a new service list instance.
@@ -39,6 +44,7 @@ class ServiceList extends StatelessWidget {
     this.typeHeaderWidgetBuilder,
     this.trailingServiceWidgetBuilder,
     required this.emptyText,
+    required this.index,
   }) : services = SplayTreeMap.from(services, (a, b) => a.compareTo(b));
 
   @override
@@ -57,20 +63,10 @@ class ServiceList extends StatelessWidget {
         ),
       );
     }
+    final entry = services.entries.elementAt(index);
 
-    return ListView(
-      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 20),
-      children: [
-        for (MapEntry<String, List<BonsoirService>> entry in services.entries) ...[
-          if (typeHeaderWidgetBuilder != null) typeHeaderWidgetBuilder!(context, entry.key),
-          for (BonsoirService service in entry.value)
-            _ServiceWidget(
-              service: service,
-              trailing: trailingServiceWidgetBuilder?.call(context, service),
-            ),
-        ],
-      ],
-    );
+    if(typeHeaderWidgetBuilder != null) typeHeaderWidgetBuilder!(context, entry.key);
+    return _ServiceWidget(service: entry.value.first, trailing: trailingServiceWidgetBuilder?.call(context, entry.value.first));
   }
 
   /// Builds a sorted map of services.
