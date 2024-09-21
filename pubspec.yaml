@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.5.1
+  sdk: ^3.3.4
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -32,11 +32,12 @@ dependencies:
     sdk: flutter
 
   flutter_riverpod:
-  yaru: ^5.1.0
+  yaru:
   handy_window:
-  bonsoir: ^5.1.10
-  shared_preferences: ^2.3.2
-  uuid: ^4.5.0
+  bonsoir:
+  shared_preferences:
+  uuid:
+  device_info_plus: 
 
 
   # The following adds the Cupertino Icons font to your application.

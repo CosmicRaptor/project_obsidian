@@ -1,85 +1,83 @@
-import 'package:chat_app/providers/shared_prefs_providers.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:async';
+
 import 'package:bonsoir/bonsoir.dart';
+import 'package:chat_app/models/BonsoirModels.dart';
+import 'package:chat_app/models/app_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../models/user_model.dart';
+/// The model provider.
+final discoveryModelProvider = ChangeNotifierProvider<BonsoirDiscoveryModel>((ref) {
+  BonsoirDiscoveryModel model = BonsoirDiscoveryModel();
+  model.start(DefaultAppService.service.type);
+  return model;
+});
 
-// StateNotifier to handle discovery state and persist it across rebuilds
-class MulticastNotifier extends StateNotifier<List<String>> {
-  MulticastNotifier(this.ref) : super([]) {
-    _startDiscovery();
+/// Provider model that allows to handle Bonsoir discoveries.
+class BonsoirDiscoveryModel extends BonsoirActionModel<String, BonsoirDiscovery, BonsoirDiscoveryEvent> {
+  /// A map containing all discovered services.
+  final Map<String, List<BonsoirService>> _services = {};
+
+  @override
+  BonsoirDiscovery createAction(String argument) => BonsoirDiscovery(type: argument);
+
+  @override
+  Future<void> start(String argument, {bool notify = true}) async {
+    _services[argument] ??= [];
+    await super.start(argument, notify: notify);
   }
 
-  final Ref ref;
-  late BonsoirDiscovery discovery;
-  Set<String> discoveredServices = {};
+  /// Returns the services map.
+  Map<String, List<BonsoirService>> get services => Map.from(_services);
 
-  Future<void> _startDiscovery() async {
-    String type = '_chat._tcp'; // The service type for the chat application.
-    discovery = BonsoirDiscovery(type: type);
-    await discovery.ready;
+  @override
+  void onEventOccurred(BonsoirDiscoveryEvent event) {
+    if (event.service == null) {
+      return;
+    }
 
-    // Start the broadcast before starting the discovery
-    await ref.read(multicastBroadcastProvider.future);
-
-    // Start the discovery process:
-    await discovery.start();
-
-    // Listen to the discovery events:
-    discovery.eventStream!.listen((event) {
-      if (event.type == BonsoirDiscoveryEventType.discoveryServiceFound) {
-        String? serviceName = event.service?.name;
-
-        // Check if service was already discovered
-        if (serviceName != null && !discoveredServices.contains(serviceName)) {
-          print('Service found : ${event.service?.toJson()}');
-          discoveredServices.add(serviceName); // Add to discovered set
-          state = [...state, serviceName]; // Update state with new clients
-        }
-      } else if (event.type == BonsoirDiscoveryEventType.discoveryServiceLost) {
-        String? serviceName = event.service?.name;
-
-        if (serviceName != null && discoveredServices.contains(serviceName)) {
-          print('Service lost : ${event.service?.toJson()}');
-          discoveredServices.remove(serviceName); // Remove from discovered set
-          state = state.where((client) => client != serviceName).toList(); // Update state
-        }
-      }
-    });
-  }
-
-  Future<void> stopDiscovery() async {
-    await discovery.stop();
+    BonsoirService service = event.service!;
+    List<BonsoirService> services = _services[service.type]!;
+    if (event.type == BonsoirDiscoveryEventType.discoveryServiceFound) {
+      services.add(service);
+    } else if (event.type == BonsoirDiscoveryEventType.discoveryServiceResolved) {
+      services.removeWhere((foundService) => foundService.name == service.name);
+      services.add(service);
+    } else if (event.type == BonsoirDiscoveryEventType.discoveryServiceLost) {
+      services.removeWhere((foundService) => foundService.name == service.name);
+    }
+    services.sort((a, b) => a.name.compareTo(b.name));
+    notifyListeners();
   }
 
   @override
-  void dispose() {
-    stopDiscovery();
-    super.dispose();
+  Future<void> stop(String argument, {bool notify = true}) async {
+    await super.stop(argument, notify: false);
+    _services.remove(argument);
+    if (notify) {
+      notifyListeners();
+    }
+  }
+
+  /// Resolves the given service.
+  void resolveService(BonsoirService service) {
+    BonsoirDiscovery? discovery = getAction(service.type);
+    if (discovery != null) {
+      service.resolve(discovery.serviceResolver);
+    }
   }
 }
-
-// Create a provider for MulticastNotifier
-final multicastProvider = StateNotifierProvider<MulticastNotifier, List<String>>((ref) {
-  return MulticastNotifier(ref);
+/// The model provider.
+final broadcastModelProvider = ChangeNotifierProvider((ref) {
+  BonsoirBroadcastModel model = BonsoirBroadcastModel();
+  model.start(DefaultAppService.service);
+  return model;
 });
 
-// Provider for broadcasting services
-final multicastBroadcastProvider = FutureProvider.autoDispose<void>((ref) async {
-  BonsoirBroadcast broadcast = ref.read(bonsoirBroadcast);
-  await broadcast.ready;
+/// Provider model that allows to handle Bonsoir broadcasts.
+class BonsoirBroadcastModel extends BonsoirActionModel<BonsoirService, BonsoirBroadcast, BonsoirEvent> {
+  /// Returns the broadcasted services.
+  Iterable<BonsoirService> get broadcastedServices => actions.map((broadcast) => broadcast.service);
 
-  // Start the broadcast **after** listening to broadcast events:
-  await broadcast.start();
-});
-
-// Provide the BonsoirService instance so it can be stopped/started:
-final bonsoirBroadcast = Provider<BonsoirBroadcast>((ref) {
-  AsyncValue<User> userAsyncValue = ref.watch(getUserProvider);
-  userAsyncValue.when(
-    data: (user) => print(user),
-    loading: () => print('Loading...'),
-    error: (error, stack) => print('Error: $error'),
-  );
-  return BonsoirBroadcast(service: BonsoirService(name: userAsyncValue.maybeWhen(data: (user) => user.id ?? 'No UUID', orElse: ()=>'Something went wrong'), type: '_chat._tcp', port: 45000));
-});
+  @override
+  BonsoirBroadcast createAction(BonsoirService argument) => BonsoirBroadcast(service: argument);
+}

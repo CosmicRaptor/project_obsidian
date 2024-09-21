@@ -1,3 +1,7 @@
+import 'package:bonsoir/bonsoir.dart';
+import 'package:chat_app/dialogs/broadcast_dialog.dart';
+import 'package:chat_app/dialogs/discovery_dialog.dart';
+import 'package:chat_app/providers/multicast_provider.dart';
 import 'package:chat_app/providers/shared_prefs_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -58,6 +62,23 @@ class OnboardingScreen extends ConsumerWidget {
                       );
                     },
                     child: const Text('Continue'),
+                  ),
+
+                  ElevatedButton(onPressed: ()async{
+                    String? type = await DiscoveryPromptDialog.prompt(context);
+                    if(type != null){
+                      ref.read(discoveryModelProvider).start(type);
+                    }
+                  }, child: const Text('Discover Services')),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () async{
+                      BonsoirService? service = await BroadcastPromptDialog.prompt(context);
+                      if(service != null){
+                        ref.read(broadcastModelProvider).start(service);
+                      }
+                    },
+                    child: const Text('Broadcast Service'),
                   ),
                 ],
               ),
