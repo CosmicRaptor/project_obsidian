@@ -55,9 +55,10 @@ class TcpConnectionNotifier extends StateNotifier<Socket?> {
   }
 
   // Method to send data over the connection
-  void sendMessage(String message) {
+  void sendMessage(String message, String uuid) {
     if (state != null) {
-      state!.write(message);
+      final msg = Message(message: message, uuid: uuid, ip: state!.address.address, port: state!.port);
+      state!.write(jsonEncode(msg.toJson()));
       print('Sent message: $message');
     } else {
       print('No active connection.');

@@ -1,6 +1,7 @@
 import 'package:chat_app/providers/connection_provider.dart';
 import 'package:chat_app/providers/shared_prefs_providers.dart';
 import 'package:chat_app/screens/home_screen/message_card.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -16,7 +17,7 @@ class MessagesPage extends ConsumerWidget {
     return Column(
       children: [
         SizedBox(
-          height: height * 0.8,
+          height: height * 0.9,
           child: ListView.builder(
             itemCount: messages.length,
               itemBuilder: (context, index) {
@@ -39,26 +40,32 @@ class MessagesPage extends ConsumerWidget {
             );
           }),
         ),
-        const Divider(),
+        // const Divider(),
         //send message box
         Expanded(
-          child: TextField(
-            controller: controller,
-            decoration: const InputDecoration(
-              hintText: 'Enter your message',
-            ),
-            onSubmitted: (value) {
-            String uuid = '';
-            userAsyncVal.when(
-              data: (user) => uuid = user.id ?? '',
-              loading: () {},
-              error: (error, stack) {},
-            );
-            // final msg = Message(uuid: uuid, message: value);
-
-              ref.read(tcpConnectionProvider.notifier).sendMessage(value);
-              controller.clear();
-            },
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextField(
+                controller: controller,
+                decoration: const InputDecoration(
+                  hintText: 'Enter your message',
+                ),
+                onSubmitted: (value) {
+                String uuid = '';
+                userAsyncVal.when(
+                  data: (user) => uuid = user.id ?? '',
+                  loading: () {},
+                  error: (error, stack) {},
+                );
+                // final msg = Message(uuid: uuid, message: value);
+          
+                  ref.read(tcpConnectionProvider.notifier).sendMessage(value, uuid);
+                  controller.clear();
+                },
+              ),
+              const SizedBox(height: 2),
+            ],
           ),
         ),
 
