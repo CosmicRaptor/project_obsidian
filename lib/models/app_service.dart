@@ -8,7 +8,7 @@ import 'package:uuid/uuid.dart';
 /// Allows to get the Bonsoir service corresponding to the current device.
 class DefaultAppService {
   /// The service type name.
-  static const String type = 'bonsoirdemo';
+  static const String type = 'chatapp';
 
   /// The service type.
   static const String protocol = 'tcp';
@@ -52,7 +52,7 @@ class DefaultAppService {
       name = 'Flutter';
       os = 'Unknown';
     }
-    name += ' Bonsoir Demo';
+    name += ' Chat App';
 
     _service = BonsoirService(
       name: name,

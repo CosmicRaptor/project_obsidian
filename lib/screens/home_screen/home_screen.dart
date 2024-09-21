@@ -39,7 +39,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           )),
         ),
         tileBuilder: (context, index, selected, availableWidth) {
-          return ServiceList.fromMap(
+          return clients.isNotEmpty ?
+          ServiceList.fromMap(
               services: clients,
               emptyText: 'No services found',
               index: index,
@@ -51,10 +52,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: Text('Resolve'),
                 );
               }
-          );
+          ) : const Center(child: CircularProgressIndicator());
         },
         pageBuilder: (context, index) {
-          return const MessagesPage();
+          return YaruDetailPage(
+            appBar: YaruTitleBar(
+              title: Text(clients.keys.elementAt(index)),
+            ),
+            body: const MessagesPage(),
+          );
         },
       ),
     );

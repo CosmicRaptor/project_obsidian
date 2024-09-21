@@ -17,7 +17,7 @@ class MessagesPage extends ConsumerWidget {
     return Column(
       children: [
         SizedBox(
-          height: height * 0.9,
+          height: height * 0.8,
           child: ListView.builder(
             itemCount: messages.length,
               itemBuilder: (context, index) {
