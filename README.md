@@ -10,7 +10,8 @@ A WIP TCP socket based chat/file transfer program, developed using the Yaru them
 ## What's working:
 - [x] discovery of clients
 - [x] advertising your client using mDNS
-- [x] (partially implemented) connect using TCP
+- [x] connect using TCP
+- [x] sending and recieving text messages 
 - [ ] encryption
 - [ ] message persistence
 - [ ] file sharing  
