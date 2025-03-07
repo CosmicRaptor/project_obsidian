@@ -1,4 +1,4 @@
-import 'package:chat_app/models/user_model.dart';
+import 'dart:io';
 import 'package:chat_app/providers/multicast_provider.dart';
 import 'package:chat_app/providers/shared_prefs_providers.dart';
 import 'package:chat_app/screens/home_screen/messages_page.dart';
@@ -15,54 +15,83 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  int _selectedIndex = 0; // Track selected chat
+
   @override
   Widget build(BuildContext context) {
-    // Watch the getUserNameProvider
-    AsyncValue<User> userAsyncValue = ref.watch(getUserProvider);
-    userAsyncValue.when(
-      data: (user) => print(user),
-      loading: () => print('Loading...'),
-      error: (error, stack) => print('Error: $error'),
-    );
-
-    // Watch the multicastProvider
+    final userAsyncValue = ref.watch(getUserProvider);
     final discoveryModel = ref.watch(discoveryModelProvider);
     final clients = discoveryModel.services;
 
+    // Get username safely
+    String username = userAsyncValue.maybeWhen(
+      data: (user) => user.name ?? '',
+      orElse: () => '',
+    );
+
+    // MOBILE LAYOUT
+    if (Platform.isAndroid || Platform.isIOS) {
+      return Scaffold(
+        appBar: AppBar(title: Text(username)),
+        drawer: Drawer(
+          child: Column(
+            children: [
+              DrawerHeader(child: Text('Chats', style: Theme.of(context).textTheme.headlineLarge)),
+              Expanded(
+                child: clients.isEmpty
+                    ? const Center(child: Text('No services found'))
+                    : ListView.builder(
+                  itemCount: clients.keys.length,
+                  itemBuilder: (context, index) {
+                    String serviceName = clients.keys.elementAt(index);
+                    return ListTile(
+                      title: Text(serviceName),
+                      selected: _selectedIndex == index,
+                      onTap: () {
+                        setState(() => _selectedIndex = index);
+                        Navigator.pop(context); // Close drawer
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+        body: clients.isEmpty
+            ? const Center(child: Text('No services available'))
+            : MessagesPage(), // Show chat page
+      );
+    }
+
+    // DESKTOP (Linux) LAYOUT
     return Scaffold(
       body: YaruMasterDetailPage(
         length: clients.isNotEmpty ? clients.keys.length : 1,
-        appBar: YaruWindowTitleBar(
-          title: Text(userAsyncValue.maybeWhen(
-            data: (user) => user.name ?? '',
-            orElse: () => '',
-          )),
-        ),
+        appBar: YaruWindowTitleBar(title: Text(username)),
         tileBuilder: (context, index, selected, availableWidth) {
-          print(clients);
-          return clients.isNotEmpty ?
-          ServiceList.fromMap(
-              services: clients,
-              emptyText: 'No services found',
-              index: index,
-              trailingServiceWidgetBuilder: (context, service) {
-                return TextButton(
-                  onPressed: () {
-                    discoveryModel.resolveService(service);
-                  },
-                  child: Text('Resolve'),
-                );
-              }
-          ) : const Center(child: CircularProgressIndicator());
+          return clients.isNotEmpty
+              ? ServiceList.fromMap(
+            services: clients,
+            emptyText: 'No services found',
+            index: index,
+            trailingServiceWidgetBuilder: (context, service) {
+              return TextButton(
+                onPressed: () {
+                  discoveryModel.resolveService(service);
+                },
+                child: Text('Resolve'),
+              );
+            },
+          )
+              : const Center(child: CircularProgressIndicator());
         },
         pageBuilder: (context, index) {
           if (clients.isEmpty) {
             return const Center(child: Text('No services available'));
           }
           return YaruDetailPage(
-            appBar: YaruTitleBar(
-              title: Text(clients.keys.elementAt(index)),
-            ),
+            appBar: YaruTitleBar(title: Text(clients.keys.elementAt(index))),
             body: const MessagesPage(),
           );
         },

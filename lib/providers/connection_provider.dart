@@ -10,10 +10,16 @@ final messagesProvider = StateNotifierProvider<MessagesNotifier, List<Message>>(
 class MessagesNotifier extends StateNotifier<List<Message>> {
   MessagesNotifier() : super([]);
 
+  // ✅ Handles received messages
   void addMessage(String message) {
     Map<String, dynamic> decoded = jsonDecode(message);
     final msg = Message.fromJson(decoded);
     state = [...state, msg];
+  }
+
+  // ✅ Handles sent messages locally
+  void addLocalMessage(Message message) {
+    state = [...state, message];
   }
 }
 
@@ -58,12 +64,17 @@ class TcpConnectionNotifier extends StateNotifier<Socket?> {
   void sendMessage(String message, String uuid) {
     if (state != null) {
       final msg = Message(message: message, uuid: uuid, ip: state!.address.address, port: state!.port);
+
+      // ✅ Add sent message to messagesProvider
+      ref.read(messagesProvider.notifier).addLocalMessage(msg);
+
       state!.write(jsonEncode(msg.toJson()));
       print('Sent message: $message');
     } else {
       print('No active connection.');
     }
   }
+
 
   // Method to disconnect the socket
   void disconnect() {
