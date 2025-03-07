@@ -50,7 +50,7 @@ class ServiceList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (services.isEmpty) {
+    if (services.isEmpty || services.values.every((list) => list.isEmpty)) {
       return Padding(
         padding: const EdgeInsets.all(20),
         child: Center(
@@ -64,11 +64,35 @@ class ServiceList extends StatelessWidget {
         ),
       );
     }
+
     final entry = services.entries.elementAt(index);
 
-    if(typeHeaderWidgetBuilder != null) typeHeaderWidgetBuilder!(context, entry.key);
-    return _ServiceWidget(service: entry.value.first, trailing: trailingServiceWidgetBuilder?.call(context, entry.value.first));
+    // Ensure the list is not empty before accessing first element
+    if (entry.value.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(20),
+        child: Center(
+          child: Text(
+            'No services found for ${entry.key}',
+            style: const TextStyle(
+              color: Colors.black54,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (typeHeaderWidgetBuilder != null) {
+      typeHeaderWidgetBuilder!(context, entry.key);
+    }
+
+    return _ServiceWidget(
+      service: entry.value.first,
+      trailing: trailingServiceWidgetBuilder?.call(context, entry.value.first),
+    );
   }
+
 
   /// Builds a sorted map of services.
   static Map<String, List<BonsoirService>> _buildMap(Iterable<BonsoirService> services) {

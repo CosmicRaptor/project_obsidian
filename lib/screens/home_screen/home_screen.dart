@@ -31,7 +31,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       body: YaruMasterDetailPage(
-        length: clients.keys.length,
+        length: clients.isNotEmpty ? clients.keys.length : 1,
         appBar: YaruWindowTitleBar(
           title: Text(userAsyncValue.maybeWhen(
             data: (user) => user.name ?? '',
@@ -39,6 +39,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           )),
         ),
         tileBuilder: (context, index, selected, availableWidth) {
+          print(clients);
           return clients.isNotEmpty ?
           ServiceList.fromMap(
               services: clients,
@@ -55,6 +56,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ) : const Center(child: CircularProgressIndicator());
         },
         pageBuilder: (context, index) {
+          if (clients.isEmpty) {
+            return const Center(child: Text('No services available'));
+          }
           return YaruDetailPage(
             appBar: YaruTitleBar(
               title: Text(clients.keys.elementAt(index)),
